@@ -20,7 +20,7 @@ For more detailed instructions, please refer to the `README.md` in each director
 
 ## Acknowledgements
 
-- Haolin Ma
-- Kaibo Yang(aliykb@outlook.com)
+- Haolin Ma (ma207185099@gmail.com)
+- Kaibo Yang (aliykb@outlook.com)
 - Haomiao Qiu
 - Zijia He
