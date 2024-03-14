@@ -155,20 +155,6 @@
   </worldbody>
   <!-- 驱动  -->
   <actuator>
-    <!-- <motor name="r_kuan_roll"       gear="200"  joint="r_kuan_roll"/>
-    <motor name="r_kuan_yaw"       gear="200"  joint="r_kuan_yaw"/>
-    <motor name="r_kuan_pitch"       gear="200"  joint="r_kuan_pitch"/>
-    <motor name="r_knee"       gear="200"  joint="r_knee"/>
-    <motor name="r_knee_passive"       gear="200"  joint="r_knee_passive"/>
-    <motor name="r_huai_roll"       gear="100"  joint="r_huai_roll"/>
-    <motor name="r_huai_pitch"       gear="100"  joint="r_huai_pitch"/>
-    <motor name="l_kuan_roll"       gear="200"  joint="l_kuan_roll"/>
-    <motor name="l_kuan_yaw"       gear="200"  joint="l_kuan_yaw"/>
-    <motor name="l_kuan_pitch"       gear="200"  joint="l_kuan_pitch"/>
-    <motor name="l_knee"       gear="200"  joint="l_knee"/>
-    <motor name="l_knee_passive"       gear="200"  joint="l_knee_passive" />
-    <motor name="l_huai_roll"       gear="100"  joint="l_huai_roll"/>
-    <motor name="l_huai_pitch"       gear="100"  joint="l_huai_pitch"/> -->
     <motor name="r_kuan_roll"       gear="40"  joint="r_kuan_roll"/>
     <motor name="r_kuan_yaw"       gear="25"  joint="r_kuan_yaw"/>
     <motor name="r_kuan_pitch"       gear="25"  joint="r_kuan_pitch"/>
@@ -183,21 +169,6 @@
     <motor name="l_knee_passive"       gear="25"  joint="l_knee_passive" />
     <motor name="l_huai_roll"       gear="15"  joint="l_huai_roll"/>
     <motor name="l_huai_pitch"       gear="15"  joint="l_huai_pitch"/>
-
-    <!-- <position name="r_kuan_roll"    gear="1"     joint="r_kuan_roll" ctrlrange="-50 50"/>
-    <position name="r_kuan_yaw"    gear="1"     joint="r_kuan_yaw" ctrlrange="-20 20"/>
-    <position name="r_kuan_pitch"  gear="1"      joint="r_kuan_pitch" ctrlrange="-20 20"/>
-    <position name="r_knee"   gear="1"     joint="r_knee" ctrlrange="-20 20"/>
-    <position name="r_knee_passive"   gear="1"      joint="r_knee_passive" ctrlrange="-20 20"/>
-    <position name="r_huai_roll"    gear="1"     joint="r_huai_roll" ctrlrange="-10 10"/>
-    <position name="r_huai_pitch"   gear="1"      joint="r_huai_pitch" ctrlrange="-10 10"/>
-    <position name="l_kuan_roll"    gear="1"     joint="l_kuan_roll" ctrlrange="-50 50"/>
-    <position name="l_kuan_yaw"     gear="1"    joint="l_kuan_yaw" ctrlrange="-20 20"/>
-    <position name="l_kuan_pitch"   gear="1"     joint="l_kuan_pitch" ctrlrange="-20 20"/>
-    <position name="l_knee"   gear="1"      joint="l_knee" ctrlrange="-20 20"/>
-    <position name="l_knee_passive"   gear="1"      joint="l_knee_passive" ctrlrange="-20 20"/>
-    <position name="l_huai_roll"     gear="1"    joint="l_huai_roll" ctrlrange="-10 10"/>
-    <position name="l_huai_pitch"   gear="1"      joint="l_huai_pitch" ctrlrange="-10 10"/> -->
   </actuator>
   <!-- 传感器  -->
   <sensor>

@@ -14,6 +14,8 @@ The repository's structure is as follows:
 
 `MORL/`contains files in a multi-objective environment
 
+For more detailed instructions, please refer to the `README.md` in each directory
+
 ## Acknowledgements
 
 - Haolin Ma

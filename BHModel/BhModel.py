@@ -4,6 +4,7 @@ from gymnasium import utils
 from gymnasium.spaces import Box
 import numpy as np
 import mujoco
+
 DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 1,
     "distance": 4.0,
@@ -61,7 +62,7 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         self._effic_reward = effic_reward
         self.COM_pos_x = []
         self.COM_pos_y = []
-        # self.COM_pos_z = 1.0
+        self.COM_pos_z = 1.065
         self.left_foot_pos_x = []
         self.left_foot_pos_y = []
         self.left_foot_pos_z = []
@@ -92,7 +93,7 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
 
         MujocoEnv.__init__(
             self,
-            "D://My_things//Documents//Desktop//bh-dyn//bh_dyn//envs//model_8.xml",
+            "./bhdyn/bhmodel.xml",
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
@@ -107,7 +108,9 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         )
 
     def control_cost(self, action):
-        control_cost = self._ctrl_cost_weight * np.sum(np.square(self.data.ctrl))
+        control_cost = self._ctrl_cost_weight * np.sum(
+            np.square(self.data.ctrl)
+        )
         return control_cost
 
     @property
@@ -151,7 +154,7 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
 
     # YKB Add
     def _get_target(self):
-        loaded_data = np.load("bipedal_robot_data.npz")
+        loaded_data = np.load("./bhdyn/bipedal_robot_data.npz")
         self.COM_pos_x = loaded_data["COM_pos_x"]
         self.COM_pos_y = loaded_data["COM_pos_y"]
         self.left_foot_pos_x = loaded_data["left_foot_pos_x"]
@@ -166,9 +169,9 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
     # YKB Add
     @property  # 鲁棒性奖励
     def robustness_reward(self):
-        weight = [2.0, 2.0, 10.0]
+        weight = [0.02, 0.02, 0.1]
         step = int(self.data.time / 0.01)
-        
+
         # 关节[7:]位置
         q_pos = self.data.qpos.flat.copy()
         q_left_pos = self.left_jiont_pos[step]
@@ -178,13 +181,17 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         q_loss = -0.5 * np.sum((q_pos[7:] - target_q_pos) ** 2)
 
         # 获得躯体位置
-        mujoco.mj_kinematics(self.model,self.data) 
+        mujoco.mj_kinematics(self.model, self.data)
         body_pos = self.data.xipos.flat.copy()
 
         # 计算质心位置
         mass = np.expand_dims(self.model.body_mass, axis=1)
-        body_center = (np.sum(mass * body_pos, axis=0) / np.sum(mass))[0:3].copy()
-        target_center = np.array([self.COM_pos_x[step], self.COM_pos_y[step], 1.1])
+        body_center = (np.sum(mass * body_pos, axis=0) / np.sum(mass))[
+            0:3
+        ].copy()
+        target_center = np.array(
+            [self.COM_pos_x[step], self.COM_pos_y[step], self.COM_pos_z]
+        )
         # body_center = mass_center(self.model, self.data)
         # target_center = np.array([self.COM_pos_x[step], self.COM_pos_y[step]])
         center_loss = -0.5 * np.sum((body_center - target_center) ** 2)
@@ -210,7 +217,11 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
             (r_foot - target_r_foot) ** 2 + (l_foot - target_l_foot) ** 2
         )
 
-        reward = weight[0] * center_loss + weight[1] * foot_loss + weight[2] * q_loss
+        reward = (
+            weight[0] * center_loss
+            + weight[1] * foot_loss
+            + weight[2] * q_loss
+        )
         return reward
 
     # YKB Add
@@ -219,7 +230,9 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         q_force = self.data.qfrc_actuator.flat.copy()
         q_vel = self.data.qvel.flat.copy()
         # effic_reward = -0.0001 * (np.sum(q_force * q_vel) / np.sum(self.xy_dis**2))
-        effic_reward = 1e2 / (np.sum(q_force * q_vel) / (1.0 + np.sum(self.xy_dis**2)))
+        effic_reward = 1 / (
+            np.sum(q_force * q_vel) / (1.0 + np.sum(self.xy_dis**2))
+        )
         return effic_reward
 
     def step(self, action):
@@ -241,12 +254,8 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         )
         self.temp = robustness_reward
         effic_reward = self._effic_reward * self.effic_reward
-        # rewards = (
-        #     forward_reward + healthy_reward + robustness_reward + effic_reward
-        # )  # YKB Change
-
         rewards = (
-            forward_reward + healthy_reward 
+            forward_reward + healthy_reward + robustness_reward + effic_reward
         )  # YKB Change
 
         observation = self._get_obs()  # 观察空间
@@ -289,11 +298,12 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         observation = self._get_obs()
         return observation
 
-if __name__=='__main__':
 
-    bh=BhModelEnv()
+if __name__ == "__main__":
+
+    bh = BhModelEnv()
     # mujoco.mj_kinematics(bh.model,bh.data)
     # print(bh.data.xipos.flat.copy())
     # print(len(bh.data.xipos.flat.copy()))
-    print(np.hstack((bh.left_jiont_pos[100],bh.right_jiont_pos[100])))
+    print(np.hstack((bh.left_jiont_pos[100], bh.right_jiont_pos[100])))
     print(bh.data.qpos[7:])
