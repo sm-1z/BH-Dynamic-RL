@@ -17,11 +17,15 @@ In order to install the corresponding python package, you can perform the follow
 >>>pip install -r requirement.txt
 ```
 
-
-
 ## Structure
 
+`bh_dyn/`contains the BH_Dyn model files
 
+`logs/`contains the tensorboard logs
+
+`models/`contains the train models, and can be load
+
+`videos/`contains the videos which are recorded during training
 
 ## Start
 
@@ -35,5 +39,14 @@ And now, you can execute the command to start to train Humanoid
 
 ```powershell
 >>>python Humanoid.py
+```
+
+## DATA
+
+You can use tensorboard to see the data
+
+```powershell
+>>>cd SORL
+>>>tensorboard --logdir=logs
 ```
 
