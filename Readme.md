@@ -18,9 +18,22 @@ The repository's structure is as follows:
 
 For more detailed instructions, please refer to the `README.md` in each directory
 
+## Citing the Project
+
+If you use BH-Dynamic-RL in your research, please cite this:
+
+```bibtex
+@inproceedings{
+	author = {},
+	title = {},
+	booktitle = {},
+	year = {2024}
+}
+```
+
 ## Acknowledgements
 
-- Haolin Ma
+- Haolin Ma(ma207185099@gmail.com)
 - Kaibo Yang(aliykb@outlook.com)
 - Haomiao Qiu
 - Zijia He

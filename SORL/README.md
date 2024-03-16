@@ -23,7 +23,7 @@ In order to install the corresponding python package, you can perform the follow
 
 `logs/`contains the tensorboard logs
 
-`models/`contains the train models, and can be load
+`models/`contains the train models, you can chooose whether to load the train model
 
 `videos/`contains the videos which are recorded during training
 
