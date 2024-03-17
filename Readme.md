@@ -1,5 +1,7 @@
 ## BH-Dynamic-RL
 
+**Before you start, you should read the `README.md` of every directory carefully!!!**
+
 This repository is designed to run BH-Dynamic models in both single-objective and multi-objective reinforcement learning environments.
 
 In a single-objective environment, [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) and [Stable-baselines3](https://github.com/DLR-RM/stable-baselines3) are called.

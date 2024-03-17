@@ -85,3 +85,6 @@ You also can test the model:
 >>>python bhmodel_test.py
 ```
 
+## Final
+
+You can change the training environment by copying the code and modifying the variables when generating the gym environment. **Remember to change the path of the saved file!!!**

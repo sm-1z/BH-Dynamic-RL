@@ -9,7 +9,7 @@ import os
 videodir = "./videos/BhDyn/"
 modeldir = "./models/BhDyn/"
 
-Train_num = ""
+train_num = ""
 USE_Algorithm = None
 i = "1"
 
@@ -21,7 +21,7 @@ MAX_EPI_STEP = 3000
 
 def main():
     env = gym.make("bh_dyn/BhDyn-v0", render_mode="rgb_array")
-    path = os.path.join(modeldir, USE_Algorithm, Train_Num, i, ".zip")
+    path = os.path.join(modeldir, USE_Algorithm, train_num, i, ".zip")
     model = sb3.SAC.load(path, env)
     Test(model)
 
@@ -33,7 +33,7 @@ def Test(model):
             render_mode="rgb_array",
             max_episode_steps=MAX_EPI_STEP,
         )
-        path = os.path.join(videodir, "Test", USE_Algorithm, Train_Num)
+        path = os.path.join(videodir, "Test", USE_Algorithm, train_num)
         env = RecordVideo(env, path, episode_trigger=EpiTrigger)
     else:
         env = gym.make(
@@ -67,6 +67,6 @@ def EpiTrigger(epi):
 
 
 if __name__ == "__main__":
-    Train_Num = input("input Train_Number\n")
+    train_num = input("input train_number\n")
     USE_Algorithm = input("input algorithm you want to test\n")
     main()

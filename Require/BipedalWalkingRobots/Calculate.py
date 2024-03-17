@@ -1,7 +1,7 @@
 # from LIPM import func_LIPM_3D as func
-import bh_dyn.BipedalWalkingRobots.LIPM.func_LIPM_3D as func
+import LIPM.func_LIPM_3D as func
 import numpy as np
-from bh_dyn.BipedalWalkingRobots.ikine import ikineLeft, ikineRight
+from ikine import ikineLeft, ikineRight
 
 # from ikine import ikineLeft
 # from ikine import ikineRight
@@ -86,4 +86,4 @@ def Calculate(time=6):
     return COM_pos_x,COM_pos_y,left_foot_pos_x,left_foot_pos_y,left_foot_pos_z,right_foot_pos_x,right_foot_pos_y,right_foot_pos_z,left_joint_pos,right_joint_pos
 
 if __name__=='__main__':
-    Calculate(6)
+    Calculate(time=6)

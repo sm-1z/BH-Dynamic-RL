@@ -1,0 +1,1 @@
+You can run the `Calculate.py` to generate robot walking tracks. The tracks are save in a `.npz` file, and you can use the new file to replace the old file in `SORL/bh_dyn/envs` or `MORL/mo_bh_dyn/envs` 
