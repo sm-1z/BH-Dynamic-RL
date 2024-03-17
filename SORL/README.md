@@ -17,6 +17,16 @@ In order to install the corresponding python package, you can perform the follow
 >>>pip install -r requirement.txt
 ```
 
+**P.S.**
+
+You can clear python packages with the following command:
+
+```powershell
+>>>cd SORL
+>>>pip freeze > deltemp.txt
+>>>pip uninstall -r deltemp.txt -y
+```
+
 ## Structure
 
 `bh_dyn/`contains the BH_Dyn model files
@@ -27,18 +37,36 @@ In order to install the corresponding python package, you can perform the follow
 
 `videos/`contains the videos which are recorded during training
 
+`Humanoid.py`run this file to train the model Humanoid
+
+`bhmodel_train.py`run this file to train the model bhdyn
+
+`bhmodel_test.py`run this file to test the model you save
+
 ## Start
 
-First, you should execute the following command in order to enter the SORL working directory
+First, you can use tools like `venv`, `conda`, etc. to create a new python virtual environment in which to install python packages. We use `conda` to create a new python environment and start training. In order to create a new environment with conda, make sure that conda is installed on your system and can be created with the following command:
+
+```powershell
+>>>conda create -n mysorl python=3.8
+>>>conda init
+>>>conda activate mysorl
+```
+
+Now, you activate a python virtual environment, and you can start to train the model. First, you should execute the following command in order to enter the SORL working directory:
 
 ```powershell
 >>>cd SORL
 ```
 
-And now, you can execute the command to start to train Humanoid
+Then, you can execute the command to start to train Humanoid
 
 ```powershell
 >>>python Humanoid.py
+```
+
+```powershell
+>>>python bhmodel_train.py
 ```
 
 ## DATA
@@ -48,5 +76,12 @@ You can use tensorboard to see the data
 ```powershell
 >>>cd SORL
 >>>tensorboard --logdir=logs
+```
+
+You also can test the model:
+
+```powershell
+>>>cd SORL
+>>>python bhmodel_test.py
 ```
 

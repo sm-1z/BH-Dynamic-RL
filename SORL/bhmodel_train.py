@@ -1,6 +1,7 @@
 import gymnasium as gym
 import stable_baselines3 as sb3
 from gymnasium.wrappers.record_video import RecordVideo
+import bh_dyn as bh
 
 import os
 
