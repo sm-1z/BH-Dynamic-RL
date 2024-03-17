@@ -37,11 +37,7 @@ You can clear python packages with the following command:
 
 `videos/`contains the videos which are recorded during training
 
-`Humanoid.py`run this file to train the model Humanoid
 
-`bhmodel_train.py`run this file to train the model bhdyn
-
-`bhmodel_test.py`run this file to test the model you save
 
 ## Start
 
