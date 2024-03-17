@@ -29,7 +29,7 @@ You can clear python packages with the following command:
 
 ## Structure
 
-`bh_dyn/`contains the BH_Dyn model files
+`mo_bh_dyn/`contains the MO_BH_Dyn model files
 
 `logs/`contains the tensorboard logs
 
@@ -37,7 +37,11 @@ You can clear python packages with the following command:
 
 `videos/`contains the videos which are recorded during training
 
+`our_capql/`contains the algorithm capql that we've modified slightly 
 
+`mo_bhmodel_train.py`run this file to train the model mo_bh_dyn
+
+`mo_bhmodel_test.py`run this file to test the model you save
 
 ## Start
 
@@ -58,11 +62,7 @@ Now, you activate a python virtual environment, and you can start to train the m
 Then, you can execute the command to start to train Humanoid
 
 ```powershell
->>>python Humanoid.py
-```
-
-```powershell
->>>python bhmodel_train.py
+>>>python mo_bhmodel_train.py
 ```
 
 ## DATA
@@ -78,9 +78,11 @@ You also can test the model:
 
 ```powershell
 >>>cd MORL
->>>python bhmodel_test.py
+>>>python mo_bhmodel_test.py
 ```
 
 ## Final
 
 You can change the training environment by copying the code and modifying the variables when generating the gym environment.
+
+**Remember to change the path of the saved file!!!**
