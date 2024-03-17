@@ -124,6 +124,7 @@ def CheckDir():
 
 
 if __name__ == "__main__":
+    CheckDir()
     train_num = input("input train_number\n")
     USE_Algorithm = input("input your favorite algorithm\n")
     main()

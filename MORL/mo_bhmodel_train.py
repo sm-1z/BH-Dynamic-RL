@@ -1,7 +1,6 @@
 import mo_gymnasium as mo_gym
 import numpy as np
 import mo_bh_dyn
-
 # from morl_baselines.multi_policy.capql.capql import CAPQL
 from our_capql.capql import CAPQL
 from gymnasium.wrappers.record_video import RecordVideo
@@ -80,7 +79,17 @@ def EpiTrigger(epi):
     return epi % EPI_TRI_NUM == 0
 
 
+def CheckDir():
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+    if not os.path.exists(videodir):
+        os.makedirs(videodir)
+    if not os.path.exists(modeldir):
+        os.makedirs(modeldir)
+
+
 if __name__ == "__main__":
+    CheckDir()
     train_num = input("input train_number\n")
     model_name = input(
         "type your model name\nif don't load model, input enter:\n"
