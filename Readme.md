@@ -36,6 +36,6 @@ If you use BH-Dynamic-RL in your research, please cite this:
 ## Acknowledgements
 
 - Haolin Ma (ma207185099@gmail.com)
-- Kaibo Yang (aliykb@outlook.com)
+- Kaibo Yang (19241013@buaa.edu.cn)
 - Haomiao Qiu
 - Zijia He
