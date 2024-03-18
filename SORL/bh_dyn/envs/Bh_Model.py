@@ -4,6 +4,7 @@ from gymnasium import utils
 from gymnasium.spaces import Box
 import numpy as np
 import mujoco
+import os
 
 DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 1,
@@ -91,9 +92,12 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
                 low=-np.inf, high=np.inf, shape=(457,), dtype=np.float64
             )
 
+        current_file_dir = os.path.dirname(__file__)
+        model_path = os.path.join(current_file_dir, "bhmodel.xml")
         MujocoEnv.__init__(
             self,
-            "./mo_bh_dyn/envs/bhmodel.xml",
+            model_path,
+            # "./mo_bh_dyn/envs/bhmodel.xml",
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
@@ -154,7 +158,10 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
 
     # YKB Add
     def _get_target(self):
-        loaded_data = np.load("./mo_bh_dyn/envs/bipedal_robot_data.npz")
+        current_file_dir = os.path.dirname(__file__)
+        trace_path = os.path.join(current_file_dir, "bipedal_robot_data.npz")
+        # loaded_data = np.load("./mo_bh_dyn/envs/bipedal_robot_data.npz")
+        loaded_data = np.load(trace_path)
         self.COM_pos_x = loaded_data["COM_pos_x"]
         self.COM_pos_y = loaded_data["COM_pos_y"]
         self.left_foot_pos_x = loaded_data["left_foot_pos_x"]
@@ -301,3 +308,5 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
 
 if __name__ == "__main__":
     print("Success")
+    current_file_dir = os.path.dirname(__file__)
+    print(current_file_dir)

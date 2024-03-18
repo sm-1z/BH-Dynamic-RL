@@ -3,6 +3,7 @@ from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium import utils
 from gymnasium.spaces import Box
 import numpy as np
+import os
 
 DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 1,
@@ -91,9 +92,12 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
                 low=-np.inf, high=np.inf, shape=(457,), dtype=np.float64
             )
 
+        current_file_dir = os.path.dirname(__file__)
+        model_path = os.path.join(current_file_dir, "bhmodel.xml")
         MujocoEnv.__init__(
             self,
-            "./mo_bh_dyn/envs/bhmodel.xml",
+            # "./mo_bh_dyn/envs/bhmodel.xml",
+            model_path,
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
@@ -108,7 +112,9 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         )
 
     def control_cost(self, action):
-        control_cost = self._ctrl_cost_weight * np.sum(np.square(self.data.ctrl))
+        control_cost = self._ctrl_cost_weight * np.sum(
+            np.square(self.data.ctrl)
+        )
         return control_cost
 
     @property
@@ -158,7 +164,11 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         # self.left_foot_pos_x, self.left_foot_pos_y, self.left_foot_pos_z, \
         # self.right_foot_pos_x, self.right_foot_pos_y, self.right_foot_pos_z, \
         # self.left_jiont_pos, self.right_jiont_pos = Calculate(total_time)
-        loaded_data = np.load("./mo_bh_dyn/envs/bipedal_robot_data.npz")
+        current_file_dir = os.path.dirname(__file__)
+        trace_path = os.path.join(current_file_dir, "bipedal_robot_data.npz")
+        # loaded_data = np.load("./mo_bh_dyn/envs/bipedal_robot_data.npz")
+        loaded_data = np.load(trace_path)
+        # loaded_data = np.load("./mo_bh_dyn/envs/bipedal_robot_data.npz")
         self.COM_pos_x = loaded_data["COM_pos_x"]
         self.COM_pos_y = loaded_data["COM_pos_y"]
         self.left_foot_pos_x = loaded_data["left_foot_pos_x"]
@@ -187,11 +197,15 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         body_pos = self.data.xipos.flat.copy()
         # 计算质心位置
         mass = np.expand_dims(self.model.body_mass, axis=1)
-        body_center = (np.sum(mass * body_pos, axis=0) / np.sum(mass))[0:3].copy()
+        body_center = (np.sum(mass * body_pos, axis=0) / np.sum(mass))[
+            0:3
+        ].copy()
 
         # 一个时间步是0.01=0.02*5=timestep*frame_skip
 
-        target_center = np.array([self.COM_pos_x[step], self.COM_pos_y[step], 1.064])
+        target_center = np.array(
+            [self.COM_pos_x[step], self.COM_pos_y[step], 1.064]
+        )
         center_loss = -0.5 * np.sum((body_center - target_center) ** 2)
 
         # 双足当前位置 右[27:30] 左[51:]
@@ -216,7 +230,9 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
         )
 
         robustness_reward = (
-            weight[0] * center_loss + weight[1] * foot_loss + weight[2] * q_loss
+            weight[0] * center_loss
+            + weight[1] * foot_loss
+            + weight[2] * q_loss
         )
 
         return robustness_reward
@@ -226,7 +242,9 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
     def effic_reward(self):
         q_force = self.data.qfrc_actuator.flat.copy()
         q_vel = self.data.qvel.flat.copy()
-        effic_reward = 50.0 / (np.sum(q_force[6:] * q_vel[6:]) / np.sum(self.xy_dis**2))
+        effic_reward = 50.0 / (
+            np.sum(q_force[6:] * q_vel[6:]) / np.sum(self.xy_dis**2)
+        )
 
         return effic_reward
 
@@ -266,7 +284,6 @@ class BhModelEnv(MujocoEnv, utils.EzPickle):
             "healthy_reward": healthy_reward,
             "robustness_reward": robustness_reward + healthy_reward,
             "effic_reward": effic_reward + healthy_reward,
-
         }
         if self.count % 100 == 0:
             # print(
