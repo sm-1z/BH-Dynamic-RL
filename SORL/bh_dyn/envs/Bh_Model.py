@@ -3,7 +3,6 @@ from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium import utils
 from gymnasium.spaces import Box
 import numpy as np
-import mujoco
 import os
 
 DEFAULT_CAMERA_CONFIG = {
