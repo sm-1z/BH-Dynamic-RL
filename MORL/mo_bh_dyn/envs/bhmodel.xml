@@ -5,28 +5,40 @@
      v8：1. 将各关节驱动换回motor，以及调试的减速比;
          2. 重新设置每个关节的阻尼、摩擦、转子惯量
          3. 重新设置地面摩擦-->
-  
+<!-- *
+* compiler autolimits eulerseq 
+* visual
+* aseet mesh
+* xiepo-->
+
 <mujoco model="mbot">
   <!-- mesh文件地址  -->
-  <compiler angle="radian" meshdir="./mesh"/>
+  <compiler angle="radian" meshdir="./mesh" autolimits="true" eulerseq="xyz"/>
 
   <option timestep="0.002" iterations="50"/>
 
+  <!-- 加上之后，整体明亮了不少 -->
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="150" elevation="-20"/>
+  </visual>
+
   <default class="mesh">
     <geom rgba="0.8 0.6 0.4 1" condim='4' contype="1" conaffinity="15" solref='0.001 2' friction='0.9 0.2 0.2'/>
-    <joint limited="true" damping="0.01" frictionloss="0.01" armature="0.01"/>
+    <joint limited="auto" damping="0.01" frictionloss="0.01" armature="0.01"/>
     <position ctrlrange="-1 1" ctrllimited="true"/>
   </default>
   
   <asset>
     <!-- 天空的颜色  -->
-    <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="32" height="512"/>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="32" height="512"/>
     <!-- 地面的颜色和材质  -->
-    <texture name="groundplane" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .2 .3" rgb2=".2 .3 .4"/>
-    <material name="groundplane" texture="groundplane" texrepeat="5 5" texuniform="true" reflectance=".2"/>
-
+    <texture name="groundplane" type="2d" builtin="checker" width="512" height="512" rgb1="0.1 0.2 0.3" rgb2="0.2 0.3 0.4" markrgb="0.8 0.8 0.8" mark="edge"/>
+    <material name="groundplane" texture="groundplane" texrepeat="5 5" texuniform="true" reflectance="0.2"/>
 
     <mesh name="yao" file="yao.stl" scale="0.001 0.001 0.001"/>
+
     <mesh name="r_kuan_roll" file="r_kuan_roll.stl" scale="0.001 0.001 0.001"/>
     <mesh name="r_kuan_yaw" file="r_kuan_yaw.stl" scale="0.001 0.001 0.001"/>
     <mesh name="r_kuan_pit" file="r_kuan_pit.stl" scale="0.001 0.001 0.001"/>
@@ -35,64 +47,84 @@
     <mesh name="r_xiaotui" file="r_xiaotui.stl" scale="0.001 0.001 0.001"/>
     <mesh name="r_huai_roll" file="r_huai_roll.stl" scale="0.001 0.001 0.001"/>
     <mesh name="r_foot" file="r_foot.stl" scale="0.001 0.001 0.001"/>
-    <mesh name="l_datui" file="l_datui.stl" scale="0.001 0.001 0.001"/>
-  </asset>
 
+    <mesh name="l_kuan_roll" file="r_kuan_roll.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_kuan_yaw" file="r_kuan_yaw.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_kuan_pit" file="r_kuan_pit.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_xi" file="r_xi.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_datui" file="l_datui.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_xiaotui" file="r_xiaotui.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_huai_roll" file="r_huai_roll.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="l_foot" file="r_foot.stl" scale="0.001 0.001 0.001"/>
+
+    <!-- 奇怪的四元数
+    <mesh name="xie2po1" file="xie2po1.stl" scale="0.05 0.1 0.2" refquat="0.70710678 0.0 0.0 0.70710678"/>
+
+    <hfield name="terrain" size="10 10 0.1 0.1" file="test1.png"/>
+    <hfield name="qi3fu2" size="10 10 0.1 0.1" file="qi3fu2.png"/> -->
+  </asset>
 
 
   <worldbody>
     <!-- 地板位置位于z轴的0处  -->
-    <geom name="floor" pos="0 0 0" size="0 0 .5" type="plane" material="groundplane" condim="3"/>
-    <!-- 灯光  -->
-    <light name="spotlight" mode="targetbodycom" target="robot_yao" diffuse=".8 .8 .8" specular="0.3 0.3 0.3" pos="0 -6 4" cutoff="30"/>
+    <!-- <geom name="terrain_geom" type="hfield" hfield="terrain" pos="0 0 -0.1" material="groundplane"/> -->
+
+    <!-- <geom name="qi3fu2_geom" type="hfield" hfield="qi3fu2" pos="0.0 0.4 -0.03" material="groundplane"/> -->
+
+    <geom name="floor" pos="0 0 0" size="0 0 0.5" type="plane" material="groundplane" condim="3"/>
+    <!-- <geom name="xie2po1" pos="8 12.5 0" size="0 0 0" type="mesh" mesh="xie2po1" condim="3" quat="0.70710678 0.0 -0.70710678 0.0" material="groundplane"/> -->
+    <!-- 灯光  --> 
+    <light name="spotlight" mode="targetbodycom" target="robot_yao" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" pos="0 -6 4" cutoff="30"/>
 
     <!-- 机器人腰  -->
     <body name="robot_yao" pos="0 0 1.065">
       <inertial pos="0 0 0" quat="0.707107 0.707107 0 0" mass="0.5" diaginertia="0.00005 0.00009 0.00009"/>
+
       <freejoint name="root"/>
-      <!-- <geom pos="0 0 0" type="mesh" mesh="yao"/> -->
+      <!-- <joint name="vertical_slide" type="slide" pos="0 0 0" axis="0 1 0" range="0.8 1.1" user="0 0 0 1 0 0 1"/> -->
       <geom pos="0 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" rgba="0.8 0.6 0.4 1" mesh="yao"/>
+      <camera name="track" pos="6 1 1.5" xyaxes="0 1 0 -1 0 2.5" mode="trackcom"/>
 
       <!-- 右腿  -->
-      <body name="r_kuan_rol" pos="0 0 0">
+      <body name="r_kuan_roll" pos="0 0 0">
         <inertial pos="0 0 0" quat="0.707107 0.707107 0 0" mass="3.376" diaginertia="0.0053 0.0059 0.0062"/>
-        <!-- <geom pos="0.2025 0 0" type="mesh" mesh="r_kuan_roll"/> -->
+        <!-- <inertial pos="0 0 0" quat="0.707107 0.707107 0 0" mass="0.01" diaginertia="0.0053 0.0059 0.0062"/> -->
         <geom pos="0.2025 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_kuan_roll"/>
 
-        <body name="r_kuan_ya" pos="0.2025 0.076 0" quat="0.707035 -0.707179 0 0">
+        <body name="r_kuan_yaw" pos="0.2025 0.076 0" quat="0.707035 -0.707179 0 0">
           <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="3.280" diaginertia="0.0051 0.0055 0.0056"/>
+          <!-- <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="0.01" diaginertia="0.0051 0.0055 0.0056"/> -->
           <joint name="r_kuan_roll" pos="0 0 0" axis="0 0 1" range="-0.3 0.23"/>
-          <!-- <geom pos="0 0 0.065" type="mesh" mesh="r_kuan_yaw"/> -->
           <geom pos="0 0 0.065" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_kuan_yaw"/>
+
           <body name="r_kuan_pit" pos="0 0.076 0.065" quat="0.499898 -0.5 -0.5 -0.500102">
             <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="3.297" diaginertia="0.0051 0.0055 0.0058"/>
+            <!-- <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="0.01" diaginertia="0.0051 0.0055 0.0058"/> -->
             <joint name="r_kuan_yaw" pos="0 0 0" axis="0 0 1"  range="-0.17 0.17"/>
-            <!-- <geom pos="0 0 0.065" type="mesh" mesh="r_kuan_pit"/> -->
             <geom pos="0 0 0.065" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_kuan_pit"/>
+
             <body name="r_xi" pos="0 0.071 0.065" quat="-0.298723 0.298784 0.64083 0.64096">
               <inertial pos="0 0 0" quat="0.5 0.5 0.5 0.5" mass="3.466" diaginertia="0.0054 0.0072 0.0073"/>
-              <joint name="r_kuan_pitch" pos="0 0 0" axis="0 0 1" range="-0.3 1.43"/>
-              <!-- <geom type="mesh" mesh="r_xi"/> -->
+              <!-- <joint name="r_kuan_pitch" pos="0 0 0" axis="0 0 1" range="-0.3 1.43"/> -->
+              <joint name="r_kuan_pitch" pos="0 0 0" axis="0 0 1" range="-0.3 0.8"/>
               <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_xi"/>
+
               <body name="r_datui" pos="0.125 0 -0.071" quat="-3.00018e-06 0.816773 0.576959 -2.11929e-06">
-                <!--inertial pos="0 0 0" quat="0.261584 0.698842 -0.122282 0.654401" mass="1.274" diaginertia="0.0246667 0.0246667 0.0246667"/-->
-                <joint name="r_knee" pos="0 0 0" axis="0 0 1"  range="-0.3 1.43"/>
-                <!-- !<geom type="mesh" mesh="r_datui"/> -->
+                <!-- <joint name="r_knee" pos="0 0 0" axis="0 0 1"  range="-0.3 1.43"/> -->
+                <joint name="r_knee" pos="0 0 0" axis="0 0 1"  range="-0.3 0.5"/>
                 <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_datui"/>
+
                 <body name="r_xiaotui" pos="0.48936 0 0.0225" quat="0.84244 0 0 0.53879">
-                  <!--inertial pos="0 0 0" quat="0.344682 0.648336 0.29472 0.611551" mass="2.037" diaginertia="0.0016 0.0212 0.0212"/-->
-                  <joint name="r_knee_passive" pos="0 0 0" axis="0 0 1" range="-1.43 0.3"/>
-                  <!-- <geom type="mesh" mesh="r_xiaotui"/> -->
+                  <!-- <joint name="r_knee_passive" pos="0 0 0" axis="0 0 1" range="-1.43 0.3"/> -->
+                  <joint name="r_knee_passive" pos="0 0 0" axis="0 0 1" range="-0.5 0.3"/>
                   <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_xiaotui"/>
-                  <body name="r_huai_rol" pos="0.45675 0 0" quat="0.955779 0 0 -0.294087">
-                    <!--inertial pos="0 0 0" mass="0.076" diaginertia="0.00007 0.00007 0.00013"/-->
+
+                  <body name="r_huai_roll" pos="0.45675 0 0" quat="0.955779 0 0 -0.294087">
                     <joint name="r_huai_roll" pos="0 0 0" axis="0 -1 0" range="-0.9 0.9" armature="0.1"/>
-                    <!-- <geom type="mesh" mesh="r_huai_roll"/> -->
                     <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_huai_roll"/>
+
                     <body name="r_foot">
-                      <!--inertial pos="0 0 0" quat="0.943628 0 -0.331007 0" mass="0.223" diaginertia="0.0001 0.0005 0.0006"/-->
                       <joint name="r_huai_pitch" pos="0 0 0" axis="0 0 1"  range="-0.9 0.9" armature="0.1"/>
-                      <!-- <geom type="mesh" mesh="r_foot"/> -->
                       <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_foot"/>
                     </body>
                   </body>
@@ -104,45 +136,46 @@
       </body>
 
       <!-- 左腿  -->
-      <body name="l_kuan_rol" pos="0 0 0">
+      <body name="l_kuan_roll" pos="0 0 0">
         <inertial pos="0 0 0" quat="0.707107 0.707107 0 0" mass="3.376" diaginertia="0.0053 0.0059 0.0062"/>
-        <!-- <geom pos="-0.2025 0 0" quat="1.32679e-06 0 1 0" type="mesh" mesh="r_kuan_roll"/> -->
-        <geom pos="-0.2025 0 0" quat="1.32679e-06 0 1 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_kuan_roll"/>
-        <body name="l_kuan_ya" pos="-0.2025 0.076 0" quat="0.707035 -0.707179 0 0">
+        <!-- <inertial pos="0 0 0" quat="0.707107 0.707107 0 0" mass="0.01" diaginertia="0.0053 0.0059 0.0062"/> -->
+        <geom pos="-0.2025 0 0" quat="1.32679e-06 0 1 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="l_kuan_roll"/>
+
+        <body name="l_kuan_yaw" pos="-0.2025 0.076 0" quat="0.707035 -0.707179 0 0">
           <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="3.280" diaginertia="0.0051 0.0055 0.0056"/>
-          <joint name="l_kuan_roll" pos="0 0 0" axis="0 0 1" range="-0.3 0.23"/>
-          <!-- <geom pos="0 0 0.065" type="mesh" mesh="r_kuan_yaw"/> -->
-          <geom pos="0 0 0.065" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_kuan_yaw"/>
+          <!-- <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="0.01" diaginertia="0.0051 0.0055 0.0056"/> -->
+          <joint name="l_kuan_roll" pos="0 0 0" axis="0 0 1" range="-0.23 0.3"/>
+          <geom pos="0 0 0.065" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="l_kuan_yaw"/>
+
           <body name="l_kuan_pit" pos="0 0.076 0.065" quat="0.499898 -0.5 -0.5 -0.500102">
             <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="3.297" diaginertia="0.0051 0.0055 0.0058"/>
+            <!-- <inertial pos="0 0 0.065" quat="0.707107 0.707107 0 0" mass="0.01" diaginertia="0.0051 0.0055 0.0058"/> -->
             <joint name="l_kuan_yaw" pos="0 0 0" axis="0 0 1"  range="-0.17 0.17"/>
-            <!-- <geom pos="0 0 0.065" quat="1.32679e-06 0 0 1" type="mesh" mesh="r_kuan_pit"/> -->
-            <geom pos="0 0 0.065" quat="1.32679e-06 0 0 1" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_kuan_pit"/>
+            <geom pos="0 0 0.065" quat="1.32679e-06 0 0 1" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="l_kuan_pit"/>
+
             <body name="l_xi" pos="0 -0.071 0.065" quat="-0.298723 -0.298784 0.64083 -0.64096">
               <inertial pos="0 0 0" quat="0.5 0.5 0.5 0.5" mass="3.466" diaginertia="0.0054 0.0072 0.0073"/>
-              <joint name="l_kuan_pitch" pos="0 0 0" axis="0 0 1"  range="-0.3 1.43"/>
-              <!-- <geom type="mesh" mesh="r_xi"/> -->
-              <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="r_xi"/>
+              <!-- <joint name="l_kuan_pitch" pos="0 0 0" axis="0 0 1"  range="-0.3 1.43"/> -->
+              <joint name="l_kuan_pitch" pos="0 0 0" axis="0 0 1"  range="-0.8 0.3"/>
+              <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="l_xi"/>
+              
               <body name="l_datui" pos="0.125 0 -0.071" quat="-3.00018e-06 0.816773 -0.576959 2.11929e-06">
-                <!--inertial pos="0 0 0" quat="0.261584 0.698842 0.122282 0.654401" mass="1.274" diaginertia="0.0246667 0.0246667 0.0246667"/-->
-                <joint name="l_knee" pos="0 0 0" axis="0 0 1"  range="-0.3 1.43"/>
-                <!-- <geom type="mesh" mesh="l_datui"/> -->
+                <!-- <joint name="l_knee" pos="0 0 0" axis="0 0 1"  range="-0.3 1.43"/> -->
+                <joint name="l_knee" pos="0 0 0" axis="0 0 1"  range="-0.5 0.3"/>
                 <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="l_datui"/>
+
                 <body name="l_xiaotui" pos="0.48936 0 0.0225" quat="0.84244 0 0 -0.53879">
-                  <!--inertial pos="0 0 0" quat="0.344682 0.648336 0.29472 0.611551" mass="2.037" diaginertia="0.0016 0.0212 0.0212"/-->
-                  <joint name="l_knee_passive" pos="0 0 0" axis="0 0 1" range="-1.43 0.3"/>
-                  <!-- <geom quat="4.63268e-05 1 0 0" type="mesh" mesh="r_xiaotui"/> -->
-                  <geom quat="4.63268e-05 1 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_xiaotui"/>
+                  <!-- <joint name="l_knee_passive" pos="0 0 0" axis="0 0 1" range="-1.43 0.3"/> -->
+                  <joint name="l_knee_passive" pos="0 0 0" axis="0 0 1" range="-0.3 0.5"/>
+                  <geom quat="4.63268e-05 1 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="l_xiaotui"/>
+
                   <body name="l_huai_rol" pos="0.45675 0 0" quat="0.955779 0 0 0.294087">
-                    <!--inertial pos="0 0 0" quat="0.271338 0.706953 0.176411 0.628866" mass="0.076" diaginertia="0.00007 0.00007 0.00013"/-->
                     <joint name="l_huai_roll" pos="0 0 0" axis="0 -1 0"  range="-0.9 0.9" armature="0.1"/>
-                    <!-- <geom type="mesh" mesh="r_huai_roll"/> -->
-                    <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_huai_roll"/>
+                    <geom type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="l_huai_roll"/>
+
                     <body name="l_foot">
-                      <!--inertial pos="0 0 0" quat="0.943628 0 -0.331007 0" mass="0.223" diaginertia="0.0001 0.0005 0.0006"/-->
-                      <joint name="l_huai_pitch" pos="0 0 0" axis="0 0 1"  range="-0.9 0.9" armature="0.1"/>
-                      <!-- <geom quat="4.63268e-05 1 0 0" type="mesh" mesh="r_foot"/> -->
-                      <geom quat="4.63268e-05 1 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="r_foot"/>
+                      <joint name="l_huai_pitch" pos="0 0 0" axis="0 0 1" range="-0.9 0.9" armature="0.1"/>
+                      <geom quat="4.63268e-05 1 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="350" mesh="l_foot"/>
                     </body>
                   </body>
                 </body>
@@ -155,20 +188,23 @@
   </worldbody>
   <!-- 驱动  -->
   <actuator>
-    <motor name="r_kuan_roll"       gear="40"  joint="r_kuan_roll"/>
-    <motor name="r_kuan_yaw"       gear="25"  joint="r_kuan_yaw"/>
-    <motor name="r_kuan_pitch"       gear="25"  joint="r_kuan_pitch"/>
-    <motor name="r_knee"       gear="25"  joint="r_knee"/>
-    <motor name="r_knee_passive"       gear="25"  joint="r_knee_passive"/>
-    <motor name="r_huai_roll"       gear="15"  joint="r_huai_roll"/>
-    <motor name="r_huai_pitch"       gear="15"  joint="r_huai_pitch"/>
-    <motor name="l_kuan_roll"       gear="40"  joint="l_kuan_roll"/>
-    <motor name="l_kuan_yaw"       gear="25"  joint="l_kuan_yaw"/>
-    <motor name="l_kuan_pitch"       gear="25"  joint="l_kuan_pitch"/>
-    <motor name="l_knee"       gear="25"  joint="l_knee"/>
-    <motor name="l_knee_passive"       gear="25"  joint="l_knee_passive" />
-    <motor name="l_huai_roll"       gear="15"  joint="l_huai_roll"/>
-    <motor name="l_huai_pitch"       gear="15"  joint="l_huai_pitch"/>
+    <!-- <motor name="joint" gear="20" joint="vertical_slide"/> -->
+
+    <motor name="r_kuan_roll" gear="40" joint="r_kuan_roll"/>
+    <motor name="r_kuan_yaw" gear="25" joint="r_kuan_yaw"/>
+    <motor name="r_kuan_pitch" gear="25" joint="r_kuan_pitch"/>
+    <motor name="r_knee" gear="15" joint="r_knee"/>
+    <motor name="r_knee_passive" gear="15" joint="r_knee_passive"/>
+    <motor name="r_huai_roll" gear="15" joint="r_huai_roll"/>
+    <motor name="r_huai_pitch" gear="15" joint="r_huai_pitch"/>
+
+    <motor name="l_kuan_roll" gear="40" joint="l_kuan_roll"/>
+    <motor name="l_kuan_yaw" gear="25" joint="l_kuan_yaw"/>
+    <motor name="l_kuan_pitch" gear="25" joint="l_kuan_pitch"/>
+    <motor name="l_knee" gear="15" joint="l_knee"/>
+    <motor name="l_knee_passive" gear="15" joint="l_knee_passive" />
+    <motor name="l_huai_roll" gear="15" joint="l_huai_roll"/>
+    <motor name="l_huai_pitch"  gear="15" joint="l_huai_pitch"/>
   </actuator>
   <!-- 传感器  -->
   <sensor>
