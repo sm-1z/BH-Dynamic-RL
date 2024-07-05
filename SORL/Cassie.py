@@ -11,10 +11,11 @@ import envs
 
 import os
 
+model_choose = "Cassie-bh-new-v2"
 
-logdir = "./logs/Humanoid/"
-videodir = "./videos/Humanoid/"
-modeldir = "./models/Humanoid/"
+logdir = "./logs/Cassie/"
+videodir = "./videos/Cassie/"
+modeldir = "./models/Cassie/"
 
 train_num = ""
 USE_Algorithm = None
@@ -35,6 +36,10 @@ class SaveInfoCallback(BaseCallback):
         self.contact_ext_force_values = []
         self.control_torque_values = []
         self.stability_values = []
+        self.timesteps = []
+        self.mean_rewards = []
+        self.std_rewards = []
+        self.epi_len = []
     
     def _init_callback(self) -> None:
         # Create folder if needed
@@ -43,22 +48,31 @@ class SaveInfoCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         info = self.locals.get('infos', None)
-        if info is not None:
-            # Assuming you want to log a specific info key, e.g., "time"
-            CoT = [inf.get('CoT', np.nan) for inf in info]
-            self.CoT_values.extend(CoT)
-            # for value in CoT:
-            #     print(f"COT={value:.2f}")
-            contact_ext_force = [inf.get('contact_ext_force', np.nan) for inf in info]
-            self.contact_ext_force_values.append(contact_ext_force)
-            control_torque = [inf.get('control_torque', np.nan) for inf in info]
-            self.control_torque_values.append(control_torque)
-            stability = [inf.get('stability', np.nan) for inf in info]
-            self.stability_values.append(stability)
-        
         if self.n_calls % self.check_freq == 0:
-            np.savez(self.save_path, CoT=CoT, contact_ext_force=contact_ext_force,
-                     control_torque=control_torque, stability=stability)
+            if info is not None:
+                # Assuming you want to log a specific info key, e.g., "time"
+                CoT = [inf.get('CoT', np.nan) for inf in info]
+                self.CoT_values.extend(CoT)
+                # for value in CoT:
+                #     print(f"COT={value:.2f}")
+                contact_ext_force = [inf.get('contact_ext_force', np.nan) for inf in info]
+                self.contact_ext_force_values.append(contact_ext_force)
+                control_torque = [inf.get('control_torque', np.nan) for inf in info]
+                self.control_torque_values.append(control_torque)
+                stability = [inf.get('stability', np.nan) for inf in info]
+
+            self.timesteps.append(self.model.num_timesteps)
+            self.stability_values.append(stability)
+            mean_reward, std_reward = evaluate_policy(self.model, self.model.get_env(), n_eval_episodes=10)
+            _, epi_len = evaluate_policy(self.model, self.model.get_env(), n_eval_episodes=10, return_episode_rewards=True)
+            # print(f"mean_reward={mean_reward:.2f} +/- {std_reward}")
+            self.mean_rewards.append(mean_reward)
+            self.std_rewards.append(std_reward)
+            self.epi_len.append(epi_len)
+
+            np.savez(self.save_path, timesteps=self.timesteps, mean_rewards=self.mean_rewards, std_rewards=self.std_rewards,
+                     epi_len=self.epi_len, CoT=self.CoT_values, contact_ext_force=self.contact_ext_force_values,
+                     control_torque=self.control_torque_values, stability=self.stability_values)
             
         return True
     
@@ -80,21 +94,21 @@ def Train(method):
     # 创建环境
     if VIDEO_FLAG:
         env = gym.make(
-            "Humanoid-bh",
+            model_choose,
             render_mode="rgb_array",
             max_episode_steps=MAX_EPI_STEP,
         )
         eval_env = gym.make(
-            "Humanoid-bh",
+            model_choose,
             render_mode="rgb_array",
             max_episode_steps=MAX_EPI_STEP,
         )
     else:
         env = gym.make(
-            "Humanoid-bh", render_mode="human", max_episode_steps=MAX_EPI_STEP
+            model_choose, render_mode="human", max_episode_steps=MAX_EPI_STEP
         )
         eval_env = gym.make(
-            "Humanoid-bh",
+            model_choose,
             render_mode="human",
             max_episode_steps=MAX_EPI_STEP,
         )
@@ -119,7 +133,7 @@ def Train(method):
             env,
             learning_starts=10000,
             action_noise=NormalActionNoise(
-                np.zeros((17,)), 0.1 * np.ones((17,))
+                np.zeros((17,)), 0.1 * np.ones((17,)) # 需要改
             ),
             train_freq=1,
             gradient_steps=1,
@@ -203,7 +217,7 @@ def CheckDir():
         os.makedirs(modeldir)
 
 def Test():
-    env= gym.make("Humanoid-bh", render_mode="rgb_array", max_episode_steps=MAX_EPI_STEP)
+    env= gym.make(model_choose, render_mode="rgb_array", max_episode_steps=MAX_EPI_STEP)
     
     if USE_Algorithm == "TD3":
         model = sb3.TD3.load(modeldir + Test_Model, env=env)

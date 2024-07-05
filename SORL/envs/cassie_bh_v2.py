@@ -4,6 +4,8 @@ from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.spaces import Box
 
+import os
+
 
 DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 1,
@@ -19,7 +21,7 @@ def mass_center(model, data):
     return (np.sum(mass * xpos, axis=0) / np.sum(mass))[0:3].copy()
 
 
-class HumanoidEnv(MujocoEnv, utils.EzPickle):
+class CassieEnv2(MujocoEnv, utils.EzPickle):
     """
     ## Description
 
@@ -269,16 +271,20 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
             "rgb_array",
             "depth_array",
         ],
-        "render_fps": 67,
+        "render_fps": 400,
     }
 
     def __init__(
         self,
         forward_reward_weight=1.25,
-        ctrl_cost_weight=0.1,
+        direction_reward_weight=1.0,
+        ctrl_cost_weight=1e-4, ## MHL
+        CoT_cost_weight=1e-5,
+        contact_ext_force_weight=1e-7,
+        stability_cost_weight=1e2,
         healthy_reward=5.0,
         terminate_when_unhealthy=True,
-        healthy_z_range=(1.0, 2.0),
+        healthy_z_range=(0.6, 1.2), ## MHL
         reset_noise_scale=1e-2,
         exclude_current_positions_from_observation=True,
         **kwargs,
@@ -286,7 +292,11 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
         utils.EzPickle.__init__(
             self,
             forward_reward_weight,
+            direction_reward_weight,
             ctrl_cost_weight,
+            CoT_cost_weight,
+            contact_ext_force_weight,
+            stability_cost_weight,
             healthy_reward,
             terminate_when_unhealthy,
             healthy_z_range,
@@ -296,7 +306,11 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
         )
 
         self._forward_reward_weight = forward_reward_weight
+        self._direction_reward_weight = direction_reward_weight
         self._ctrl_cost_weight = ctrl_cost_weight
+        self._Cot_cost_weight = CoT_cost_weight
+        self._contact_ext_force_weight = contact_ext_force_weight
+        self._stability_cost_weight = stability_cost_weight
         self._healthy_reward = healthy_reward
         self._terminate_when_unhealthy = terminate_when_unhealthy
         self._healthy_z_range = healthy_z_range
@@ -309,16 +323,19 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
 
         if exclude_current_positions_from_observation:
             observation_space = Box(
-                low=-np.inf, high=np.inf, shape=(376,), dtype=np.float64
+                low=-np.inf, high=np.inf, shape=(669,), dtype=np.float64
             )
         else:
             observation_space = Box(
-                low=-np.inf, high=np.inf, shape=(378,), dtype=np.float64
+                low=-np.inf, high=np.inf, shape=(671,), dtype=np.float64
             )
 
+        current_file_dir = os.path.dirname(__file__)
+        model_path = os.path.join(current_file_dir, "./agility_cassie/scene.xml")
         MujocoEnv.__init__(
             self,
-            "humanoid.xml",
+            # "./agility_cassie/scene.xml",
+            model_path,
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
@@ -341,6 +358,18 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
         contact_forces = self.data.cfrc_ext
         contact_ext_force = np.sum(np.square(contact_forces))
         return contact_ext_force
+    
+    @property ## MHL
+    def contact_ext_force_cost(self):
+        contact_ext_force_cost = self._contact_ext_force_weight * self.contact_ext_force
+        return contact_ext_force_cost
+    
+    @property ## MHL
+    def direction_reward(self):
+        xyz_position = mass_center(self.model, self.data)
+        direction = np.arctan2(xyz_position[1], xyz_position[0])
+        direction_reward = self._direction_reward_weight * np.exp(-np.abs(direction))
+        return direction_reward
 
     @property
     def is_healthy(self):
@@ -388,20 +417,35 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
 
         ctrl_cost = self.control_cost(action)
 
-        forward_reward = self._forward_reward_weight * x_velocity
+        forward_threshold = 1.5
+        if x_velocity > 0:
+            if abs(x_velocity) < forward_threshold:
+                forward_reward = self._forward_reward_weight * x_velocity
+            else:
+                forward_reward = self._forward_reward_weight * forward_threshold
+            CoT = np.sum(np.abs(self.data.qfrc_actuator * self.data.qvel)) / (np.sum(self.model.body_mass) * 9.81 * x_velocity)
+            CoT_cost = self._Cot_cost_weight * CoT
+        else:
+            CoT = -1
+            forward_reward = 0
+            CoT_cost = 1
         healthy_reward = self.healthy_reward
+        direction_reward = self.direction_reward
+        contact_ext_force_cost = self.contact_ext_force_cost
+        stability = np.linalg.norm(xyz_position_after[1:3] - xyz_position_before[1:3])## MHL 稳定性，质心在除前进x轴外，在y-z平面变化幅度越小越好
 
-        rewards = forward_reward + healthy_reward
+        stability_cost = self._stability_cost_weight * stability
+
+        rewards = forward_reward + healthy_reward + direction_reward
 
         observation = self._get_obs()
-        reward = rewards - ctrl_cost
+        reward = rewards - ctrl_cost - CoT_cost - contact_ext_force_cost - stability_cost
         terminated = self.terminated
 
         ## Personal Change ## ## MHL
-        CoT = np.sum(np.abs(self.data.qfrc_actuator * self.data.qvel)) / (np.sum(self.model.body_mass) * 9.81 * x_velocity)
         contact_ext_force = self.contact_ext_force
         control_torque = np.sum(np.square(self.data.ctrl))
-        stability = np.linalg.norm(xyz_position_after[1:3] - xyz_position_before[1:3])## MHL 稳定性，质心在除前进x轴外，在y-z平面变化幅度越小越好
+        
         
         # print(f"COT={CoT:.2f}")
         # print(f"contact_ext_force={contact_ext_force:.2f}")
@@ -418,6 +462,11 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
             "x_velocity": x_velocity,
             "y_velocity": y_velocity,
             "forward_reward": forward_reward,
+            "reward_direction": direction_reward,
+            "reward_control": -ctrl_cost,
+            "reward_CoT": -CoT_cost,
+            "reward_extForce": -contact_ext_force_cost,
+            "reward_stability": -stability_cost,
             "CoT": CoT, ## MHL
             "contact_ext_force": contact_ext_force, ## MHL
             "control_torque": control_torque, ## MHL
@@ -426,6 +475,7 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
         # print(f"reward_linvel={forward_reward:.2f}")
         # print(f"reward_quadctrl={-ctrl_cost:.2f}")
         # print(f"reward_alive={healthy_reward:.2f}")
+
 
         if self.render_mode == "human":
             self.render()

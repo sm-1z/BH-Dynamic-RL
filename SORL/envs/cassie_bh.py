@@ -4,6 +4,8 @@ from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.spaces import Box
 
+import os
+
 
 DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 1,
@@ -19,7 +21,7 @@ def mass_center(model, data):
     return (np.sum(mass * xpos, axis=0) / np.sum(mass))[0:3].copy()
 
 
-class HumanoidEnv(MujocoEnv, utils.EzPickle):
+class CassieEnv(MujocoEnv, utils.EzPickle):
     """
     ## Description
 
@@ -269,16 +271,16 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
             "rgb_array",
             "depth_array",
         ],
-        "render_fps": 67,
+        "render_fps": 400,
     }
 
     def __init__(
         self,
         forward_reward_weight=1.25,
-        ctrl_cost_weight=0.1,
+        ctrl_cost_weight=1e-4, ## MHL
         healthy_reward=5.0,
         terminate_when_unhealthy=True,
-        healthy_z_range=(1.0, 2.0),
+        healthy_z_range=(0.6, 1.2), ## MHL
         reset_noise_scale=1e-2,
         exclude_current_positions_from_observation=True,
         **kwargs,
@@ -309,16 +311,19 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
 
         if exclude_current_positions_from_observation:
             observation_space = Box(
-                low=-np.inf, high=np.inf, shape=(376,), dtype=np.float64
+                low=-np.inf, high=np.inf, shape=(669,), dtype=np.float64
             )
         else:
             observation_space = Box(
-                low=-np.inf, high=np.inf, shape=(378,), dtype=np.float64
+                low=-np.inf, high=np.inf, shape=(671,), dtype=np.float64
             )
 
+        current_file_dir = os.path.dirname(__file__)
+        model_path = os.path.join(current_file_dir, "./agility_cassie/scene.xml")
         MujocoEnv.__init__(
             self,
-            "humanoid.xml",
+            # "./agility_cassie/scene.xml",
+            model_path,
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
@@ -398,7 +403,7 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
         terminated = self.terminated
 
         ## Personal Change ## ## MHL
-        CoT = np.sum(np.abs(self.data.qfrc_actuator * self.data.qvel)) / (np.sum(self.model.body_mass) * 9.81 * x_velocity)
+        CoT = np.sum(np.abs(self.data.qfrc_actuator * self.data.qvel)) / (np.sum(self.model.body_mass) * 9.81 * abs(x_velocity))
         contact_ext_force = self.contact_ext_force
         control_torque = np.sum(np.square(self.data.ctrl))
         stability = np.linalg.norm(xyz_position_after[1:3] - xyz_position_before[1:3])## MHL 稳定性，质心在除前进x轴外，在y-z平面变化幅度越小越好
@@ -426,6 +431,7 @@ class HumanoidEnv(MujocoEnv, utils.EzPickle):
         # print(f"reward_linvel={forward_reward:.2f}")
         # print(f"reward_quadctrl={-ctrl_cost:.2f}")
         # print(f"reward_alive={healthy_reward:.2f}")
+
 
         if self.render_mode == "human":
             self.render()
