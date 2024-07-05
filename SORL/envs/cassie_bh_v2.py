@@ -277,11 +277,11 @@ class CassieEnv2(MujocoEnv, utils.EzPickle):
     def __init__(
         self,
         forward_reward_weight=1.25,
-        direction_reward_weight=1.0,
+        direction_reward_weight=0.2,
         ctrl_cost_weight=1e-4, ## MHL
-        CoT_cost_weight=1e-5,
-        contact_ext_force_weight=1e-7,
-        stability_cost_weight=1e2,
+        CoT_cost_weight=5e-5,
+        contact_ext_force_weight=5e-8,
+        stability_cost_weight=1e1,
         healthy_reward=5.0,
         terminate_when_unhealthy=True,
         healthy_z_range=(0.6, 1.2), ## MHL
@@ -472,9 +472,12 @@ class CassieEnv2(MujocoEnv, utils.EzPickle):
             "control_torque": control_torque, ## MHL
             "stability": stability, ## MHL
         }
-        # print(f"reward_linvel={forward_reward:.2f}")
-        # print(f"reward_quadctrl={-ctrl_cost:.2f}")
-        # print(f"reward_alive={healthy_reward:.2f}")
+        print(f"reward_linvel={forward_reward:.2f}")
+        print(f"reward_control={-ctrl_cost:.2f}")
+        print(f"reward_direction={direction_reward:.2f}")
+        print(f"reward_CoT={-CoT_cost:.2f}")
+        print(f"reward_extForce={-contact_ext_force_cost:.2f}")
+        print(f"reward_stability={-stability_cost:.2f}\n")
 
 
         if self.render_mode == "human":
